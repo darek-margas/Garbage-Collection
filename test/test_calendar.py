@@ -1,4 +1,5 @@
 """Test all frequencies (except blank)."""
+
 from datetime import datetime
 
 import pytest

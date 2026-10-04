@@ -1,4 +1,5 @@
 """Test entry lifecycle: options reload, unload, calendar and diagnostics."""
+
 from datetime import datetime, timedelta
 
 import pytest

@@ -1,4 +1,5 @@
 """Test Options flow."""
+
 import pytest
 from homeassistant import data_entry_flow, setup
 from homeassistant.core import HomeAssistant

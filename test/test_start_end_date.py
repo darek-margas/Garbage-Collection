@@ -1,4 +1,5 @@
 """Test start and end date."""
+
 from datetime import date, datetime
 
 import pytest

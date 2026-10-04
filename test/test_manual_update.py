@@ -1,4 +1,5 @@
 """Test manual update services."""
+
 import logging
 from datetime import date, datetime
 from unittest.mock import patch

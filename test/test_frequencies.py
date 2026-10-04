@@ -1,4 +1,5 @@
 """Test all frequencies (except blank)."""
+
 import logging
 from datetime import date, datetime
 from unittest.mock import patch

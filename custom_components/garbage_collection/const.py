@@ -1,4 +1,5 @@
 """Define constants used in garbage_collection."""
+
 from homeassistant.helpers import selector
 
 # Constants for garbage_collection.

@@ -1,4 +1,5 @@
 """Set of functions to handle date and text conversion."""
+
 from __future__ import annotations
 
 from datetime import date, datetime

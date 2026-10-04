@@ -1,4 +1,5 @@
 """Test verbose state."""
+
 import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry

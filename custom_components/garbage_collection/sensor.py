@@ -1,4 +1,5 @@
 """Sensor platform for garbage_collection."""
+
 from __future__ import annotations
 
 import logging
@@ -237,11 +238,13 @@ class GarbageCollection(RestoreEntity):
             const.ATTR_DAYS: self._days,
             const.ATTR_LAST_COLLECTION: self.last_collection,
             const.ATTR_LAST_UPDATED: self._last_updated,
-            const.ATTR_NEXT_DATE: None
-            if self._next_date is None
-            else datetime(
-                self._next_date.year, self._next_date.month, self._next_date.day
-            ).astimezone(),
+            const.ATTR_NEXT_DATE: (
+                None
+                if self._next_date is None
+                else datetime(
+                    self._next_date.year, self._next_date.month, self._next_date.day
+                ).astimezone()
+            ),
             # Needed for translations to work
             ATTR_DEVICE_CLASS: self.DEVICE_CLASS,
         }
