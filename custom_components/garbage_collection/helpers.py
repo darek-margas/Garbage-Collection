@@ -62,6 +62,7 @@ def month_day_text(value: Any) -> str:
     if value is None or value == "":
         return ""
     try:
-        return datetime.strptime(value, "%m/%d").date().strftime("%m/%d")
+        # Leap year so that 02/29 is valid; parsing without a year is deprecated
+        return datetime.strptime(f"2000/{value}", "%Y/%m/%d").strftime("%m/%d")
     except ValueError as error:
         raise vol.Invalid(f"Invalid date: {value}") from error

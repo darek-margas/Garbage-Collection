@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import timedelta
-from types import MappingProxyType
 from typing import Any, Dict
 
 import homeassistant.helpers.config_validation as cv
@@ -14,9 +13,11 @@ from dateutil.relativedelta import relativedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_HIDDEN, CONF_ENTITIES, CONF_ENTITY_ID, WEEKDAYS
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers import discovery
 from homeassistant.helpers.typing import ConfigType
 
 from . import const, helpers
+from .calendar import EntitiesCalendarData
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=30)
 
@@ -101,7 +102,7 @@ OFFSET_DATE_SCHEMA = vol.Schema(
 )
 
 
-async def async_setup(hass: HomeAssistant, _: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up platform - register services, inicialize data structure."""
 
     async def handle_add_date(call: ServiceCall) -> None:
@@ -141,8 +142,8 @@ async def async_setup(hass: HomeAssistant, _: ConfigType) -> bool:
     async def handle_offset_date(call: ServiceCall) -> None:
         """Handle the offset_date service call."""
         entity_ids = call.data.get(CONF_ENTITY_ID, [])
-        offset = call.data.get(const.CONF_OFFSET)
-        collection_date = call.data.get(const.CONF_DATE)
+        offset = call.data[const.CONF_OFFSET]
+        collection_date = call.data[const.CONF_DATE]
         for entity_id in entity_ids:
             _LOGGER.debug(
                 "called offset_date %s by %d days for %s",
@@ -151,9 +152,7 @@ async def async_setup(hass: HomeAssistant, _: ConfigType) -> bool:
                 entity_id,
             )
             try:
-                new_date = collection_date + relativedelta(
-                    days=offset
-                )  # pyright: reportOptionalOperand=false
+                new_date = collection_date + relativedelta(days=offset)
                 entity = hass.data[const.DOMAIN][const.SENSOR_PLATFORM][entity_id]
                 await asyncio.gather(
                     entity.remove_date(collection_date), entity.add_date(new_date)
@@ -190,6 +189,10 @@ async def async_setup(hass: HomeAssistant, _: ConfigType) -> bool:
 
     hass.data.setdefault(const.DOMAIN, {})
     hass.data[const.DOMAIN].setdefault(const.SENSOR_PLATFORM, {})
+    hass.data[const.DOMAIN].setdefault(
+        const.CALENDAR_PLATFORM, EntitiesCalendarData(hass)
+    )
+    hass.data[const.DOMAIN][const.HASS_CONFIG] = config
     hass.services.async_register(
         const.DOMAIN,
         "collect_garbage",
@@ -224,25 +227,41 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         config_entry.title,
         config_entry.options[const.CONF_FREQUENCY],
     )
-    config_entry.add_update_listener(update_listener)
+    config_entry.async_on_unload(config_entry.add_update_listener(update_listener))
     # Add sensor
-    await hass.config_entries.async_forward_entry_setups(config_entry, [const.SENSOR_PLATFORM])
+    await hass.config_entries.async_forward_entry_setups(
+        config_entry, [const.SENSOR_PLATFORM]
+    )
+    # The calendar is shared by all entries, so it is not bound to any of them
+    if not config_entry.options.get(ATTR_HIDDEN, False):
+        await async_ensure_calendar(hass)
     return True
 
-async def async_remove_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
-    """Handle removal of an entry."""
-    try:
-        await hass.config_entries.async_forward_entry_unload(
-            config_entry, const.SENSOR_PLATFORM
-        )
-        _LOGGER.info(
-            "Successfully removed sensor from the garbage_collection integration"
-        )
-    except ValueError:
-        pass
+
+async def async_ensure_calendar(hass: HomeAssistant) -> None:
+    """Load the shared calendar platform once."""
+    domain_data = hass.data[const.DOMAIN]
+    if domain_data.get(const.CALENDAR_LOADED):
+        return
+    domain_data[const.CALENDAR_LOADED] = True
+    _LOGGER.debug("Creating garbage collection calendar")
+    await discovery.async_load_platform(
+        hass,
+        const.CALENDAR_PLATFORM,
+        const.DOMAIN,
+        {},
+        domain_data.get(const.HASS_CONFIG, {}),
+    )
 
 
-async def async_migrate_entry(_: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    return await hass.config_entries.async_unload_platforms(
+        config_entry, [const.SENSOR_PLATFORM]
+    )
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
     _LOGGER.info(
         "Migrating %s from version %s", config_entry.title, config_entry.version
@@ -336,9 +355,12 @@ async def async_migrate_entry(_: HomeAssistant, config_entry: ConfigEntry) -> bo
             new_options[const.CONF_EXPIRE_AFTER] = (
                 new_options[const.CONF_EXPIRE_AFTER] + ":00"
             )
-    config_entry.version = const.CONFIG_VERSION
-    config_entry.data = MappingProxyType({**new_data})
-    config_entry.options = MappingProxyType({**new_options})
+    hass.config_entries.async_update_entry(
+        config_entry,
+        data=new_data,
+        options=new_options,
+        version=const.CONFIG_VERSION,
+    )
     if removed_data:
         _LOGGER.error(
             "Removed data config %s. "
@@ -360,8 +382,5 @@ async def async_migrate_entry(_: HomeAssistant, config_entry: ConfigEntry) -> bo
 
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Update listener - to re-create device after options update."""
-    await hass.config_entries.async_forward_entry_unload(entry, const.SENSOR_PLATFORM)
-    hass.async_add_job(
-        hass.config_entries.async_forward_entry_setup(entry, const.SENSOR_PLATFORM)
-    )
+    """Update listener - reload the entry after options update."""
+    await hass.config_entries.async_reload(entry.entry_id)

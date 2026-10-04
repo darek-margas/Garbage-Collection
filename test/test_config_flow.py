@@ -20,7 +20,7 @@ async def test_annual_config_flow(hass: HomeAssistant) -> None:
     assert "type" in result and "step_id" in result and "flow_id" in result
 
     # Check that the config flow shows the user form as the first step
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "user"
 
     # If a user were to enter `weekly` for frequency
@@ -38,7 +38,7 @@ async def test_annual_config_flow(hass: HomeAssistant) -> None:
 
     # Check that the config flow is complete and a new entry is created with
     # the input data
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "detail"
     assert not result["errors"]
 
@@ -57,7 +57,7 @@ async def test_annual_config_flow(hass: HomeAssistant) -> None:
         )
     assert "type" in result and "options" in result
     # Should create entry
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["options"] == {"name": "test", "frequency": "annual", "date": "04/01"}
     assert len(mock_setup.mock_calls) == 1
     assert len(mock_setup_entry.mock_calls) == 1
@@ -74,7 +74,7 @@ async def test_blank_config_flow(hass: HomeAssistant) -> None:
     )
     assert "type" in result and "step_id" in result and "flow_id" in result
     # Check that the config flow shows the user form as the first step
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "user"
 
     # If a user were to enter `weekly` for frequency
@@ -92,7 +92,7 @@ async def test_blank_config_flow(hass: HomeAssistant) -> None:
 
     # Check that the config flow is complete and a new entry is created with
     # the input data
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "detail"
     assert not result["errors"]
 
@@ -112,7 +112,7 @@ async def test_blank_config_flow(hass: HomeAssistant) -> None:
         )
     assert "type" in result and "options" in result
     # Should create entry
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["options"] == {
         "name": "test",
         "frequency": "blank",
@@ -135,7 +135,7 @@ async def test_every_n_days_config_flow(hass: HomeAssistant) -> None:
     )
     assert "type" in result and "step_id" in result and "flow_id" in result
     # Check that the config flow shows the user form as the first step
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "user"
 
     # If a user were to enter `weekly` for frequency
@@ -153,7 +153,7 @@ async def test_every_n_days_config_flow(hass: HomeAssistant) -> None:
 
     # Check that the config flow is complete and a new entry is created with
     # the input data
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "detail"
     assert not result["errors"]
 
@@ -173,7 +173,7 @@ async def test_every_n_days_config_flow(hass: HomeAssistant) -> None:
         )
     assert "type" in result and "options" in result
     # Should create entry
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["options"] == {
         "name": "test",
         "frequency": "every-n-days",
@@ -195,7 +195,7 @@ async def test_every_n_weeks_config_flow(hass: HomeAssistant) -> None:
     )
     assert "type" in result and "step_id" in result and "flow_id" in result
     # Check that the config flow shows the user form as the first step
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "user"
 
     # If a user were to enter `weekly` for frequency
@@ -213,7 +213,7 @@ async def test_every_n_weeks_config_flow(hass: HomeAssistant) -> None:
 
     # Check that the config flow is complete and a new entry is created with
     # the input data
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "detail"
     assert not result["errors"]
 
@@ -234,7 +234,7 @@ async def test_every_n_weeks_config_flow(hass: HomeAssistant) -> None:
         )
     assert "type" in result and "options" in result
     # Should create entry
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["options"] == {
         "name": "test",
         "frequency": "every-n-weeks",
@@ -257,7 +257,7 @@ async def test_monthly_config_flow(hass: HomeAssistant) -> None:
     )
     assert "type" in result and "step_id" in result and "flow_id" in result
     # Check that the config flow shows the user form as the first step
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "user"
 
     # If a user were to enter `weekly` for frequency
@@ -275,7 +275,7 @@ async def test_monthly_config_flow(hass: HomeAssistant) -> None:
 
     # Check that the config flow is complete and a new entry is created with
     # the input data
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "detail"
     assert not result["errors"]
 
@@ -296,7 +296,7 @@ async def test_monthly_config_flow(hass: HomeAssistant) -> None:
         )
     assert "type" in result and "options" in result
     # Should create entry
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["options"] == {
         "name": "test",
         "frequency": "monthly",
@@ -319,7 +319,7 @@ async def test_weekly_config_flow(hass: HomeAssistant) -> None:
     )
     assert "type" in result and "step_id" in result and "flow_id" in result
     # Check that the config flow shows the user form as the first step
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "user"
 
     # If a user were to enter `weekly` for frequency
@@ -337,7 +337,7 @@ async def test_weekly_config_flow(hass: HomeAssistant) -> None:
 
     # Check that the config flow is complete and a new entry is created with
     # the input data
-    assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "detail"
     assert not result["errors"]
 
@@ -354,7 +354,7 @@ async def test_weekly_config_flow(hass: HomeAssistant) -> None:
         )
     assert "type" in result and "options" in result
     # Should create entry
-    assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
+    assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result["options"] == {
         "name": "test",
         "frequency": "weekly",

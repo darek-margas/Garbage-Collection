@@ -21,7 +21,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import const, helpers
-from .calendar import EntitiesCalendarData
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -166,27 +165,19 @@ class GarbageCollection(RestoreEntity):
             manufacturer="bruxy70",
         )
 
-        # Create or add to calendar
+        # Add to the shared calendar
         if not self.hidden:
-            if const.CALENDAR_PLATFORM not in self.hass.data[const.DOMAIN]:
-                self.hass.data[const.DOMAIN][
-                    const.CALENDAR_PLATFORM
-                ] = EntitiesCalendarData(self.hass)
-                _LOGGER.debug("Creating garbage collection calendar")
-                await self.hass.config_entries.async_forward_entry_setups(
-                    self.config_entry, [const.CALENDAR_PLATFORM]
-                )
             self.hass.data[const.DOMAIN][const.CALENDAR_PLATFORM].add_entity(
                 self.entity_id
             )
 
     async def async_will_remove_from_hass(self) -> None:
-        """When sensor is added to hassio, remove it."""
+        """When sensor is removed from hassio, remove it from the calendar."""
         await super().async_will_remove_from_hass()
-        del self.hass.data[const.DOMAIN][const.SENSOR_PLATFORM][self.entity_id]
-        self.hass.data[const.DOMAIN][const.CALENDAR_PLATFORM].remove_entity(
-            self.entity_id
-        )
+        domain_data = self.hass.data[const.DOMAIN]
+        domain_data[const.SENSOR_PLATFORM].pop(self.entity_id, None)
+        if const.CALENDAR_PLATFORM in domain_data:
+            domain_data[const.CALENDAR_PLATFORM].remove_entity(self.entity_id)
 
     @property
     def unique_id(self) -> str:
@@ -235,7 +226,7 @@ class GarbageCollection(RestoreEntity):
         return self._last_updated
 
     @property
-    def icon(self) -> str:
+    def icon(self) -> str | None:
         """Return the entity icon."""
         return self._attr_icon
 
@@ -545,7 +536,7 @@ class DailyCollection(GarbageCollection):
         try:
             if (day1 - self._first_date).days % self._period == 0:  # type: ignore
                 return day1
-            offset = self._period - (
+            offset = self._period - (  # type: ignore
                 (day1 - self._first_date).days % self._period  # type: ignore
             )
         except TypeError as error:
@@ -681,9 +672,15 @@ class AnnualCollection(GarbageCollection):
     def _find_candidate_date(self, day1: date) -> date | None:
         """Calculate possible date, for annual frequency."""
         year = day1.year
+        if self._date is None:
+            raise ValueError(
+                f"({self._attr_name}) Please configure the date "
+                "for annual collection frequency."
+            )
         try:
-            conf_date = datetime.strptime(self._date, "%m/%d").date()
-        except TypeError as error:
+            # Leap year so that 02/29 is valid; parsing without a year is deprecated
+            conf_date = datetime.strptime(f"2000/{self._date}", "%Y/%m/%d").date()
+        except ValueError as error:
             raise ValueError(
                 f"({self._attr_name}) Please configure the date "
                 "for annual collection frequency."

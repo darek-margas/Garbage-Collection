@@ -4,21 +4,27 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.util import Throttle
+from homeassistant.util import dt as dt_util
 
 from .const import CALENDAR_NAME, CALENDAR_PLATFORM, DOMAIN, SENSOR_PLATFORM
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=1)
 
 
-async def async_setup_entry(
-    _: HomeAssistant, config_entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+async def async_setup_platform(
+    _: HomeAssistant,
+    config: ConfigType,
+    async_add_entities: AddEntitiesCallback,
+    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     # pylint: disable=unused-argument
-    """Add calendar entity to HA."""
+    """Add calendar entity to HA (loaded once, shared by all entries)."""
+    if discovery_info is None:
+        return
     async_add_entities([GarbageCollectionCalendar()], True)
 
 
@@ -119,10 +125,15 @@ class EntitiesCalendarData:
                         end=end,
                     )
                 else:
+                    tzinfo = dt_util.get_default_time_zone()
                     event = CalendarEvent(
                         summary=name,
-                        start=datetime.combine(start, datetime.min.time()),
-                        end=datetime.combine(start, garbage_collection.expire_after),
+                        start=datetime.combine(
+                            start, datetime.min.time(), tzinfo=tzinfo
+                        ),
+                        end=datetime.combine(
+                            start, garbage_collection.expire_after, tzinfo=tzinfo
+                        ),
                     )
                 events.append(event)
                 start = garbage_collection.get_next_date(
@@ -134,11 +145,10 @@ class EntitiesCalendarData:
     async def async_update(self) -> None:
         """Get the latest data."""
         next_dates = {}
+        sensors = self._hass.data[DOMAIN].get(SENSOR_PLATFORM, {})
         for entity in self.entities:
-            if self._hass.data[DOMAIN][SENSOR_PLATFORM][entity].next_date is not None:
-                next_dates[entity] = self._hass.data[DOMAIN][SENSOR_PLATFORM][
-                    entity
-                ].next_date
+            if entity in sensors and sensors[entity].next_date is not None:
+                next_dates[entity] = sensors[entity].next_date
         if len(next_dates) > 0:
             entity_id = min(next_dates.keys(), key=(lambda k: next_dates[k]))
             start = next_dates[entity_id]
@@ -149,3 +159,5 @@ class EntitiesCalendarData:
                 start=start,
                 end=end,
             )
+        else:
+            self.event = None

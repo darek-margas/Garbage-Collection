@@ -15,11 +15,14 @@ async def async_get_config_entry_diagnostics(
 ) -> Dict[str, Any]:
     """Return diagnostics for a config entry."""
     entities = hass.data[const.DOMAIN][const.SENSOR_PLATFORM]
-    entity_data = [
-        entities[entity]
-        for entity in entities
-        if entities[entity].unique_id == entry.data["unique_id"]
-    ][0]
+    # Legacy (YAML-imported) entries carry their own unique_id
+    unique_id = entry.data.get("unique_id", entry.entry_id)
+    entity_data = next(
+        (entity for entity in entities.values() if entity.unique_id == unique_id),
+        None,
+    )
+    if entity_data is None:
+        return {"config_entry": entry.as_dict()}
     data = {
         "entity_id": entity_data.entity_id,
         "state": entity_data.state,

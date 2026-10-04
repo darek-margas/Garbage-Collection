@@ -9,6 +9,8 @@ SENSOR_PLATFORM = "sensor"
 CALENDAR_PLATFORM = "calendar"
 ATTRIBUTION = "Data from this is provided by garbage_collection."
 CONFIG_VERSION = 6
+CALENDAR_LOADED = "calendar_loaded"
+HASS_CONFIG = "hass_config"
 
 ATTR_NEXT_DATE = "next_date"
 ATTR_DAYS = "days"
