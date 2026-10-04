@@ -1,0 +1,54 @@
+name: Publish release
+
+# Creates the GitHub release (tag, notes and HACS zip) for the version in
+# manifest.json when it lands on master and has no release yet.
+# Notes are read from .github/release-notes/<version>.md.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - custom_components/garbage_collection/manifest.json
+      - .github/release-notes/**
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read version
+        id: version
+        run: echo "version=$(jq -r .version custom_components/garbage_collection/manifest.json)" >> "$GITHUB_OUTPUT"
+      - name: Check for existing release
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build HACS zip
+        if: steps.existing.outputs.exists == 'false'
+        run: |
+          cd custom_components/garbage_collection
+          zip -r "$GITHUB_WORKSPACE/garbage_collection.zip" . -x '__pycache__/*'
+      - name: Create release
+        if: steps.existing.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          notes=".github/release-notes/$VERSION.md"
+          if [ -f "$notes" ]; then
+            set -- --notes-file "$notes"
+          else
+            set -- --generate-notes
+          fi
+          gh release create "$VERSION" garbage_collection.zip \
+            --target "$GITHUB_SHA" --title "$VERSION" "$@"
