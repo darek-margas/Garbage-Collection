@@ -22,10 +22,11 @@ def to_date(day: Any) -> date:
     """
     if day is None:
         raise ValueError
-    if isinstance(day, date):
-        return day
+    # datetime is a subclass of date, so it has to be checked first
     if isinstance(day, datetime):
         return day.date()
+    if isinstance(day, date):
+        return day
     return date.fromisoformat(day)
 
 

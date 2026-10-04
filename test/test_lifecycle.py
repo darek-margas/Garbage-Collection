@@ -42,7 +42,7 @@ async def test_options_update_reloads(hass: HomeAssistant) -> None:
     )
     await hass.async_block_till_done()
     assert config_entry.state == config_entries.ConfigEntryState.LOADED
-    # Restored state is replaced by the new schedule on the next poll
+    # The restored state is replaced by the new schedule
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=11))
     await hass.async_block_till_done()
     sensor = hass.states.get("sensor.weekly")
