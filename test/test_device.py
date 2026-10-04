@@ -47,7 +47,7 @@ async def test_device_info(hass: HomeAssistant) -> None:
     sensor = hass.data["garbage_collection"]["sensor"]["sensor.weekly"]
     assert sensor.device_info == {
         "identifiers": {("garbage_collection", sensor.unique_id)},
-        "name": None,
+        "name": "weekly",
         "manufacturer": "bruxy70",
     }
 

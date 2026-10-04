@@ -100,5 +100,15 @@
             "first_week": "První týden musí být číslo mezi 1 a 52",
             "date": "Špatný formát data!"
         }
+    },
+    "entity": {
+        "sensor": {
+            "schedule": {
+                "state": {
+                    "today": "Dnes",
+                    "tomorrow": "Zítra"
+                }
+            }
+        }
     }
 }

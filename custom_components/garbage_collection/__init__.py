@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
-from datetime import timedelta
+from collections.abc import Callable
 from typing import Any, Dict
 
 import homeassistant.helpers.config_validation as cv
@@ -12,217 +11,102 @@ import homeassistant.util.dt as dt_util
 import voluptuous as vol
 from dateutil.relativedelta import relativedelta
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_HIDDEN, CONF_ENTITIES, CONF_ENTITY_ID, WEEKDAYS
+from homeassistant.const import ATTR_HIDDEN
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.helpers import discovery
-from homeassistant.helpers.typing import ConfigType
+from homeassistant.exceptions import ConfigEntryError
+from homeassistant.helpers import discovery, service
+from homeassistant.helpers.typing import ConfigType, VolDictType
 
 from . import const, helpers
 from .calendar import EntitiesCalendarData
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=30)
-
 _LOGGER = logging.getLogger(__name__)
 
-months = [m["value"] for m in const.MONTH_OPTIONS]
-frequencies = [f["value"] for f in const.FREQUENCY_OPTIONS]
+# Configured in the UI only
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(const.DOMAIN)
 
-SENSOR_SCHEMA = vol.Schema(
-    {
-        vol.Required(const.CONF_FREQUENCY): vol.In(frequencies),
-        vol.Optional(const.CONF_ICON_NORMAL): cv.icon,
-        vol.Optional(const.CONF_ICON_TODAY): cv.icon,
-        vol.Optional(const.CONF_ICON_TOMORROW): cv.icon,
-        vol.Optional(const.CONF_EXPIRE_AFTER): helpers.time_text,
-        vol.Optional(const.CONF_VERBOSE_STATE): cv.boolean,
-        vol.Optional(ATTR_HIDDEN): cv.boolean,
-        vol.Optional(const.CONF_MANUAL): cv.boolean,
-        vol.Optional(const.CONF_DATE): helpers.month_day_text,
-        vol.Optional(CONF_ENTITIES): cv.entity_ids,
-        vol.Optional(const.CONF_COLLECTION_DAYS): vol.All(
-            cv.ensure_list, [vol.In(WEEKDAYS)]
-        ),
-        vol.Optional(const.CONF_FIRST_MONTH): vol.In(months),
-        vol.Optional(const.CONF_LAST_MONTH): vol.In(months),
-        vol.Optional(const.CONF_WEEKDAY_ORDER_NUMBER): vol.All(
-            cv.ensure_list, [vol.All(vol.Coerce(int), vol.Range(min=1, max=5))]
-        ),
-        vol.Optional(const.CONF_WEEK_ORDER_NUMBER): vol.All(
-            cv.ensure_list, [vol.All(vol.Coerce(int), vol.Range(min=1, max=5))]
-        ),
-        vol.Optional(const.CONF_PERIOD): vol.All(
-            vol.Coerce(int), vol.Range(min=1, max=1000)
-        ),
-        vol.Optional(const.CONF_FIRST_WEEK): vol.All(
-            vol.Coerce(int), vol.Range(min=1, max=52)
-        ),
-        vol.Optional(const.CONF_FIRST_DATE): cv.date,
-        vol.Optional(const.CONF_VERBOSE_FORMAT): cv.string,
-        vol.Optional(const.CONF_DATE_FORMAT): cv.string,
-    },
-    extra=vol.ALLOW_EXTRA,
-)
+COLLECT_GARBAGE_SCHEMA: VolDictType = {
+    vol.Optional(const.ATTR_LAST_COLLECTION): cv.datetime,
+}
 
-CONFIG_SCHEMA = vol.Schema(
-    {
-        const.DOMAIN: vol.Schema(
-            {vol.Optional(const.CONF_SENSORS): vol.All(cv.ensure_list, [SENSOR_SCHEMA])}
-        )
-    },
-    extra=vol.ALLOW_EXTRA,
-)
+ADD_REMOVE_DATE_SCHEMA: VolDictType = {
+    vol.Required(const.CONF_DATE): cv.date,
+}
 
-COLLECT_NOW_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_ENTITY_ID): vol.All(cv.ensure_list, [cv.string]),
-        vol.Optional(const.ATTR_LAST_COLLECTION): cv.datetime,
-    }
-)
+OFFSET_DATE_SCHEMA: VolDictType = {
+    vol.Required(const.CONF_DATE): cv.date,
+    vol.Required(const.CONF_OFFSET): vol.All(
+        vol.Coerce(int), vol.Range(min=-31, max=31)
+    ),
+}
 
-UPDATE_STATE_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_ENTITY_ID): vol.All(cv.ensure_list, [cv.string]),
-    }
-)
 
-ADD_REMOVE_DATE_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_ENTITY_ID): vol.All(cv.ensure_list, [cv.string]),
-        vol.Required(const.CONF_DATE): cv.date,
-    }
-)
+async def _async_add_date(entity: Any, call: ServiceCall) -> None:
+    """Handle the add_date service call."""
+    await entity.add_date(call.data[const.CONF_DATE])
 
-OFFSET_DATE_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_ENTITY_ID): vol.All(cv.ensure_list, [cv.string]),
-        vol.Required(const.CONF_DATE): cv.date,
-        vol.Required(const.CONF_OFFSET): vol.All(
-            vol.Coerce(int), vol.Range(min=-31, max=31)
-        ),
-    }
-)
+
+async def _async_remove_date(entity: Any, call: ServiceCall) -> None:
+    """Handle the remove_date service call."""
+    await entity.remove_date(call.data[const.CONF_DATE])
+
+
+async def _async_offset_date(entity: Any, call: ServiceCall) -> None:
+    """Handle the offset_date service call."""
+    collection_date = call.data[const.CONF_DATE]
+    new_date = collection_date + relativedelta(days=call.data[const.CONF_OFFSET])
+    await entity.remove_date(collection_date)
+    await entity.add_date(new_date)
+
+
+async def _async_update_state(entity: Any, _: ServiceCall) -> None:
+    """Handle the update_state service call."""
+    entity.update_state()
+    entity.async_write_ha_state()
+
+
+async def _async_collect_garbage(entity: Any, call: ServiceCall) -> None:
+    """Handle the collect_garbage service call."""
+    last_collection = call.data.get(const.ATTR_LAST_COLLECTION, helpers.now())
+    entity.last_collection = dt_util.as_local(last_collection)
+    entity.update_state()
+    entity.async_write_ha_state()
+
+
+SERVICES: Dict[str, tuple[VolDictType, Callable[[Any, ServiceCall], Any]]] = {
+    "collect_garbage": (COLLECT_GARBAGE_SCHEMA, _async_collect_garbage),
+    "update_state": ({}, _async_update_state),
+    "add_date": (ADD_REMOVE_DATE_SCHEMA, _async_add_date),
+    "remove_date": (ADD_REMOVE_DATE_SCHEMA, _async_remove_date),
+    "offset_date": (OFFSET_DATE_SCHEMA, _async_offset_date),
+}
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up platform - register services, inicialize data structure."""
-
-    async def handle_add_date(call: ServiceCall) -> None:
-        """Handle the add_date service call."""
-        entity_ids = call.data.get(CONF_ENTITY_ID, [])
-        collection_date = call.data.get(const.CONF_DATE)
-        for entity_id in entity_ids:
-            _LOGGER.debug("called add_date %s from %s", collection_date, entity_id)
-            try:
-                entity = hass.data[const.DOMAIN][const.SENSOR_PLATFORM][entity_id]
-                await entity.add_date(collection_date)
-            except KeyError as err:
-                _LOGGER.error(
-                    "Failed adding date %s to %s (%s)",
-                    collection_date,
-                    entity_id,
-                    err,
-                )
-
-    async def handle_remove_date(call: ServiceCall) -> None:
-        """Handle the remove_date service call."""
-        entity_ids = call.data.get(CONF_ENTITY_ID, [])
-        collection_date = call.data.get(const.CONF_DATE)
-        for entity_id in entity_ids:
-            _LOGGER.debug("called remove_date %s from %s", collection_date, entity_id)
-            try:
-                entity = hass.data[const.DOMAIN][const.SENSOR_PLATFORM][entity_id]
-                await entity.remove_date(collection_date)
-            except KeyError as err:
-                _LOGGER.error(
-                    "Failed removing date %s from %s (%s)",
-                    collection_date,
-                    entity_id,
-                    err,
-                )
-
-    async def handle_offset_date(call: ServiceCall) -> None:
-        """Handle the offset_date service call."""
-        entity_ids = call.data.get(CONF_ENTITY_ID, [])
-        offset = call.data[const.CONF_OFFSET]
-        collection_date = call.data[const.CONF_DATE]
-        for entity_id in entity_ids:
-            _LOGGER.debug(
-                "called offset_date %s by %d days for %s",
-                collection_date,
-                offset,
-                entity_id,
-            )
-            try:
-                new_date = collection_date + relativedelta(days=offset)
-                entity = hass.data[const.DOMAIN][const.SENSOR_PLATFORM][entity_id]
-                await asyncio.gather(
-                    entity.remove_date(collection_date), entity.add_date(new_date)
-                )
-            except (TypeError, KeyError) as err:
-                _LOGGER.error("Failed ofsetting date for %s - %s", entity_id, err)
-                break
-
-    async def handle_update_state(call: ServiceCall) -> None:
-        """Handle the update_state service call."""
-        entity_ids = call.data.get(CONF_ENTITY_ID, [])
-        for entity_id in entity_ids:
-            _LOGGER.debug("called update_state for %s", entity_id)
-            try:
-                entity = hass.data[const.DOMAIN][const.SENSOR_PLATFORM][entity_id]
-                entity.update_state()
-            except KeyError as err:
-                _LOGGER.error("Failed updating state for %s - %s", entity_id, err)
-
-    async def handle_collect_garbage(call: ServiceCall) -> None:
-        """Handle the collect_garbage service call."""
-        entity_ids = call.data.get(CONF_ENTITY_ID, [])
-        last_collection = call.data.get(const.ATTR_LAST_COLLECTION, helpers.now())
-        for entity_id in entity_ids:
-            _LOGGER.debug("called collect_garbage for %s", entity_id)
-            try:
-                entity = hass.data[const.DOMAIN][const.SENSOR_PLATFORM][entity_id]
-                entity.last_collection = dt_util.as_local(last_collection)
-                entity.update_state()
-            except KeyError as err:
-                _LOGGER.error(
-                    "Failed setting last collection for %s - %s", entity_id, err
-                )
-
     hass.data.setdefault(const.DOMAIN, {})
     hass.data[const.DOMAIN].setdefault(const.SENSOR_PLATFORM, {})
     hass.data[const.DOMAIN].setdefault(
         const.CALENDAR_PLATFORM, EntitiesCalendarData(hass)
     )
     hass.data[const.DOMAIN][const.HASS_CONFIG] = config
-    hass.services.async_register(
-        const.DOMAIN,
-        "collect_garbage",
-        handle_collect_garbage,
-        schema=COLLECT_NOW_SCHEMA,
-    )
-    hass.services.async_register(
-        const.DOMAIN,
-        "update_state",
-        handle_update_state,
-        schema=UPDATE_STATE_SCHEMA,
-    )
-    hass.services.async_register(
-        const.DOMAIN, "add_date", handle_add_date, schema=ADD_REMOVE_DATE_SCHEMA
-    )
-    hass.services.async_register(
-        const.DOMAIN,
-        "remove_date",
-        handle_remove_date,
-        schema=ADD_REMOVE_DATE_SCHEMA,
-    )
-    hass.services.async_register(
-        const.DOMAIN, "offset_date", handle_offset_date, schema=OFFSET_DATE_SCHEMA
-    )
+    for name, (schema, func) in SERVICES.items():
+        service.async_register_platform_entity_service(
+            hass,
+            const.DOMAIN,
+            name,
+            entity_domain=const.SENSOR_PLATFORM,
+            schema=schema,
+            func=func,
+        )
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
+    frequency = config_entry.options.get(const.CONF_FREQUENCY)
+    if frequency not in [f["value"] for f in const.FREQUENCY_OPTIONS]:
+        raise ConfigEntryError(f"Unknown collection frequency {frequency}")
     _LOGGER.debug(
         "Setting %s (%s) from ConfigFlow",
         config_entry.title,

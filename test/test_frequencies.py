@@ -1,8 +1,6 @@
 """Test all frequencies (except blank)."""
 
-import logging
 from datetime import date, datetime
-from unittest.mock import patch
 
 import pytest
 from homeassistant import config_entries
@@ -318,17 +316,17 @@ async def test_group(hass: HomeAssistant) -> None:
 async def test_invalid(hass: HomeAssistant) -> None:
     """Invalid frequency."""
 
-    logger = logging.getLogger("custom_components.garbage_collection.sensor")
-    with patch.object(logger, "error") as mock_error_log:
-        config_entry: MockConfigEntry = MockConfigEntry(
-            domain=const.DOMAIN,
-            options={
-                "frequency": "invalid",
-            },
-            title="invalid",
-            version=6,
-        )
-        config_entry.add_to_hass(hass)
-        await hass.config_entries.async_setup(config_entry.entry_id)
-        await hass.async_block_till_done()
-        assert mock_error_log.call_count == 1, "Invalid frequency shoudl trigger error."
+    config_entry: MockConfigEntry = MockConfigEntry(
+        domain=const.DOMAIN,
+        options={
+            "frequency": "invalid",
+        },
+        title="invalid",
+        version=6,
+    )
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert (
+        config_entry.state == config_entries.ConfigEntryState.SETUP_ERROR
+    ), "Invalid frequency should fail the entry setup."

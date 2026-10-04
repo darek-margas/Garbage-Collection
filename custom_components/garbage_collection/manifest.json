@@ -2,7 +2,7 @@
   "domain": "garbage_collection",
   "name": "Garbage Collection",
   "codeowners": [
-    "@bruxy70"
+    "@darek-margas"
   ],
   "config_flow": true,
   "dependencies": [],
@@ -13,5 +13,5 @@
   "requirements": [
     "python-dateutil>=2.8.2"
   ],
-  "version": "2026.10.04"
+  "version": "2026.10.04.1"
 }

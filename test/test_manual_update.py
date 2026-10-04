@@ -140,9 +140,9 @@ async def test_manual_update(hass: HomeAssistant) -> None:
     assert isinstance(entity.extra_state_attributes["next_date"], datetime)
     assert entity.extra_state_attributes["next_date"].date() == date(2020, 4, 3)
 
-    # Test calling wih wrong entity_id
-    logger_init = logging.getLogger("custom_components.garbage_collection")
-    with patch.object(logger_init, "error") as mock_error_log:
+    # Test calling wih wrong entity_id: HA warns about the missing entity
+    logger_service = logging.getLogger("homeassistant.helpers.service")
+    with patch.object(logger_service, "warning") as mock_error_log:
         await hass.services.async_call(
             const.DOMAIN,
             "add_date",
@@ -151,7 +151,7 @@ async def test_manual_update(hass: HomeAssistant) -> None:
         )
         assert (
             mock_error_log.call_count == 1
-        ), "Adding a date with wrong entity_id should trigger an error."
+        ), "Adding a date with wrong entity_id should trigger a warning."
         await hass.services.async_call(
             const.DOMAIN,
             "remove_date",
@@ -160,7 +160,7 @@ async def test_manual_update(hass: HomeAssistant) -> None:
         )
         assert (
             mock_error_log.call_count == 2
-        ), "Removing a date with wrong entity_id should trigger an error."
+        ), "Removing a date with wrong entity_id should trigger a warning."
         await hass.services.async_call(
             const.DOMAIN,
             "offset_date",
@@ -173,7 +173,7 @@ async def test_manual_update(hass: HomeAssistant) -> None:
         )
         assert (
             mock_error_log.call_count == 3
-        ), "Offsetting a date with wrong entity_id should trigger an error."
+        ), "Offsetting a date with wrong entity_id should trigger a warning."
         await hass.services.async_call(
             const.DOMAIN,
             "update_state",
@@ -182,7 +182,7 @@ async def test_manual_update(hass: HomeAssistant) -> None:
         )
         assert (
             mock_error_log.call_count == 4
-        ), "Updating state with wrong entity_id should trigger an error."
+        ), "Updating state with wrong entity_id should trigger a warning."
 
 
 @pytest.mark.asyncio
@@ -213,9 +213,9 @@ async def test_collect_garbage(hass: HomeAssistant) -> None:
     ]
     assert entity.extra_state_attributes["days"] == 7
 
-    # Test with wrong entity_id
-    logger_init = logging.getLogger("custom_components.garbage_collection")
-    with patch.object(logger_init, "error") as mock_error_log:
+    # Test with wrong entity_id: HA warns about the missing entity
+    logger_service = logging.getLogger("homeassistant.helpers.service")
+    with patch.object(logger_service, "warning") as mock_error_log:
         await hass.services.async_call(
             const.DOMAIN,
             "collect_garbage",
@@ -224,4 +224,4 @@ async def test_collect_garbage(hass: HomeAssistant) -> None:
         )
         assert (
             mock_error_log.call_count == 1
-        ), "Collecting garbage with wrong entity_id should trigger an error."
+        ), "Collecting garbage with wrong entity_id should trigger a warning."

@@ -1,0 +1,12 @@
+{
+    "entity": {
+        "sensor": {
+            "schedule": {
+                "state": {
+                    "today": "Vandaag",
+                    "tomorrow": "Morgen"
+                }
+            }
+        }
+    }
+}

@@ -100,6 +100,15 @@
             "first_week": "Esimene nädal peab olema number 1 ja 52 vahel",
             "date": "Vigane kuupäeva formaat!!"
         }
+    },
+    "entity": {
+        "sensor": {
+            "schedule": {
+                "state": {
+                    "today": "Täna",
+                    "tomorrow": "Homme"
+                }
+            }
+        }
     }
-
 }

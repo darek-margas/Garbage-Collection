@@ -100,6 +100,15 @@
             "first_week": "La prima settimana deve essere un numero tra 1 e 52",
             "date": "Formato data non valido!"
         }
+    },
+    "entity": {
+        "sensor": {
+            "schedule": {
+                "state": {
+                    "today": "Oggi",
+                    "tomorrow": "Domani"
+                }
+            }
+        }
     }
-
 }

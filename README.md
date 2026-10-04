@@ -71,7 +71,7 @@ Go to `Settings`/`Devices & Services`/`Helpers`, click on the `+ CREATE HELPER` 
 
 **The configuration hapend in 2 steps.** In the first step, you select the `frequency` and common parameters. In the second step you configure additional parameters depending on the selected frequency.
 
-_The configuration via `configuration.yaml` has been deprecated. If you have previously configured the integration there, it will be imported to ConfigFlow, and you should remove it._
+_The integration is configured in the UI only. A `garbage_collection:` section in `configuration.yaml` is not supported; remove it (Home Assistant shows an error while it is there)._
 
 ### STEP 1 - Common Parameters
 

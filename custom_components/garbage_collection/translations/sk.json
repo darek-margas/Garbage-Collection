@@ -63,12 +63,11 @@
                     "week_order_number_5": "Piaty týžden v mesiaci",
                     "move_country_holidays": "Štátne sviatky - krajiny (voliteľné)",
                     "holiday_move_offset": "Posunúť sviatok o (dní: -7..7)",
-                    "holiday_pop_named": "Ignorovať sviatky (volitelné)", 
+                    "holiday_pop_named": "Ignorovať sviatky (volitelné)",
                     "holiday_in_week_move": "Posunúť na ďalší deň ak je dovolenka v týždni (voliteľné)",
                     "prov": "Štátne sviatky - provincie (volitelné)",
                     "state": "Štátne sviatky - štát (volitelné)",
                     "observed": "Štátne sviatky - sledované (volitelné)"
-
                 }
             }
         },
@@ -129,7 +128,6 @@
                     "collection_days_sat": "Sobota",
                     "collection_days_sun": "Nedeľa",
                     "force_week_order_numbers": "Číslo týždna v mesiaci namiesto čísla dňa"
-
                 }
             },
             "final": {
@@ -153,7 +151,7 @@
                     "week_order_number_5": "Piaty týžden v mesiaci",
                     "move_country_holidays": "Štátne sviatky - krajiny (voliteľné)",
                     "holiday_move_offset": "Posunúť sviatok o (dní: -7..7)",
-                    "holiday_pop_named": "Ignorovať sviatky (volitelné)", 
+                    "holiday_pop_named": "Ignorovať sviatky (volitelné)",
                     "holiday_in_week_move": "Posunúť na ďalší deň ak je dovolenka v týždni (voliteľné)",
                     "prov": "Štátne sviatky - provincie (volitelné)",
                     "state": "Štátne sviatky - štát (volitelné)",
@@ -174,6 +172,15 @@
             "first_week": "Prvý týždeň musí být číslo medzi 1 a 52",
             "date": "Zlý formát dátumu!"
         }
+    },
+    "entity": {
+        "sensor": {
+            "schedule": {
+                "state": {
+                    "today": "Dnes",
+                    "tomorrow": "Zajtra"
+                }
+            }
+        }
     }
-
 }

@@ -8,12 +8,9 @@ from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
-from homeassistant.util import Throttle
 from homeassistant.util import dt as dt_util
 
 from .const import CALENDAR_NAME, CALENDAR_PLATFORM, DOMAIN, SENSOR_PLATFORM
-
-MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=1)
 
 
 async def async_setup_platform(
@@ -142,7 +139,6 @@ class EntitiesCalendarData:
                 )
         return events
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self) -> None:
         """Get the latest data."""
         next_dates = {}

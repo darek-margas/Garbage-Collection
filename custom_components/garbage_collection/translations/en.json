@@ -100,6 +100,65 @@
             "first_week": "First week must be a number between 1 and 52",
             "date": "Invalid date format!"
         }
+    },
+    "entity": {
+        "sensor": {
+            "schedule": {
+                "state": {
+                    "today": "Today",
+                    "tomorrow": "Tomorrow"
+                }
+            }
+        }
+    },
+    "services": {
+        "collect_garbage": {
+            "name": "Collect garbage",
+            "description": "Set the last collection to now (or the given time), so the sensor moves on to the next collection.",
+            "fields": {
+                "last_collection": {
+                    "name": "Last collection",
+                    "description": "Date and time of the collection. Defaults to now."
+                }
+            }
+        },
+        "update_state": {
+            "name": "Update state",
+            "description": "Recalculate the state and attributes. Use with the manual update option, after an automation has changed the schedule on the garbage_collection_loaded event."
+        },
+        "add_date": {
+            "name": "Add date",
+            "description": "Add a collection date.",
+            "fields": {
+                "date": {
+                    "name": "Date",
+                    "description": "Collection date to add."
+                }
+            }
+        },
+        "remove_date": {
+            "name": "Remove date",
+            "description": "Remove a calculated collection date.",
+            "fields": {
+                "date": {
+                    "name": "Date",
+                    "description": "Collection date to remove."
+                }
+            }
+        },
+        "offset_date": {
+            "name": "Offset date",
+            "description": "Move a collection date by a number of days.",
+            "fields": {
+                "date": {
+                    "name": "Date",
+                    "description": "Collection date to move."
+                },
+                "offset": {
+                    "name": "Offset",
+                    "description": "Number of days to move it; a negative number moves it earlier."
+                }
+            }
+        }
     }
-
 }

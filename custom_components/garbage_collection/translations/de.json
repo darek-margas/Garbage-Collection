@@ -100,5 +100,15 @@
             "first_week": "Erste Woche muss eine Zahl zwischen 1 und 52 sein",
             "date": "Ungültiges Datumsformat!"
         }
+    },
+    "entity": {
+        "sensor": {
+            "schedule": {
+                "state": {
+                    "today": "Heute",
+                    "tomorrow": "Morgen"
+                }
+            }
+        }
     }
 }

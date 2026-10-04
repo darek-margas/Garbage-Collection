@@ -18,10 +18,6 @@ ATTR_DAYS = "days"
 ATTR_LAST_COLLECTION = "last_collection"
 ATTR_LAST_UPDATED = "last_updated"
 
-# Device classes
-BINARY_SENSOR_DEVICE_CLASS = "connectivity"
-DEVICE_CLASS = "garbage_collection__schedule"
-
 # Configuration
 CONF_SENSOR = "sensor"
 CONF_ENABLED = "enabled"
