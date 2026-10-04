@@ -207,6 +207,11 @@ async def detail_config_schema(
                     unit_of_measurement="weeks",
                 )
             )
+        if handler.options[const.CONF_FREQUENCY] in const.WEEK_NUMBER_FREQUENCY:
+            # even-weeks, odd-weeks, every-n-weeks
+            options_schema[
+                optional(const.CONF_ISO_WEEKS, handler.options, const.DEFAULT_ISO_WEEKS)
+            ] = selector.BooleanSelector()
         if handler.options[const.CONF_FREQUENCY] in const.DAILY_FREQUENCY:
             # every-n-days
             options_schema[

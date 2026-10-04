@@ -9,8 +9,8 @@ This is a maintained fork of [bruxy70/Garbage-Collection](https://github.com/bru
 ## Supported schedules
 
 - `weekly`: one or more days each week, e.g. Tuesday and Thursday
-- `even-weeks` / `odd-weeks`: by ISO week number
-- `every-n-weeks`: every `period` weeks, offset by `first_week`. ISO week numbers restart each year; for a cadence that continues across New Year, use `every-n-days` with a multiple of 7
+- `even-weeks` / `odd-weeks`: every other week, by ISO week number or as a strict fortnightly cadence (see [ISO week numbers](#iso-week-numbers))
+- `every-n-weeks`: every `period` weeks, offset by `first_week`
 - `every-n-days`: every `period` days from `first_date`
 - `monthly`: the n<sup>th</sup> weekday of the month (e.g. 1st and 3rd Wednesday), optionally every `period` months
 - `annual`: once a year on a fixed date (e.g. birthdays)
@@ -52,9 +52,21 @@ Go to *Settings → Devices & services → Helpers → Create helper → Garbage
 | First date | `every-n-days` | Date the cadence starts from |
 | Order of weekday | `monthly` | Which occurrences of the weekday, e.g. 1 and 3 for the 1st and 3rd Wednesday |
 | Order of week instead of weekday | `monthly` | Use the weekday in the n<sup>th</sup> calendar week of the month instead. If a month starts on a Friday, the Wednesday of its 1st week falls in the previous month. Only enable this if your schedule really works that way |
+| Use ISO week numbers | `even-weeks`, `odd-weeks`, `every-n-weeks` | Ticked by default. See [ISO week numbers](#iso-week-numbers) |
 | Date | `annual` | `mm/dd`, e.g. `11/24` |
 | Entities | `group` | The sensors to merge |
 | Verbose format / Date format | with verbose state | Text format with `{date}` and `{days}` placeholders, and the Python `strftime` date format. Defaults: `on {date}, in {days} days` and `%d-%b-%Y` |
+
+### ISO week numbers
+
+ISO week numbers restart at 1 every year. Most years have 52 weeks, but some have 53 (2026 and 2032). After a 53-week year, week 53 and week 1 are both odd, so the cadence jumps:
+
+| Monday collection | Ticked (ISO week numbers) | Unticked (strict cadence) |
+| :-- | :-- | :-- |
+| `odd-weeks` | 28 Dec 2026, **4 Jan 2027**, 18 Jan | 28 Dec 2026, **11 Jan 2027**, 25 Jan |
+| `even-weeks` | 21 Dec 2026, **11 Jan 2027**, 25 Jan | 21 Dec 2026, **4 Jan 2027**, 18 Jan |
+
+Keep it ticked if your council publishes the schedule by week number. Untick it if they simply collect every two (or n) weeks. Unticked, weeks are counted continuously and numbered like the ISO weeks of 2026, so the two settings give the same dates until the end of 2026. You can change it at any time in the helper's *Configure* dialog.
 
 ## Sensor
 

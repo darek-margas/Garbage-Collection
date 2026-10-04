@@ -31,7 +31,11 @@
                     "weekday_order_number": "Order of the weekday in the month (e.g. first Wednesday of the month)",
                     "force_week_order_numbers": "Order of week in a month instead of order of weekday (e.g. on Wednesday of the first week)",
                     "verbose_format": "Verbose format (using `date` and `days` variables (in squary brackets))",
-                    "date_format": "Date format (Python strftime, e.g. %d-%b-%Y)"
+                    "date_format": "Date format (Python strftime, e.g. %d-%b-%Y)",
+                    "iso_week_numbers": "Use ISO week numbers"
+                },
+                "data_description": {
+                    "iso_week_numbers": "Ticked: follow ISO week numbers, which restart every year, so after a 53-week year (such as 2026) the cadence jumps. Untick for a strict every-n-weeks cadence that continues across New Year."
                 }
             }
         },
@@ -83,7 +87,11 @@
                     "weekday_order_number": "Order of the weekday in the month (e.g. first Wednesday of the month)",
                     "force_week_order_numbers": "Order of week in a month instead of order of weekday (e.g. on Wednesday of the first week)",
                     "verbose_format": "Verbose format (using `date` and `days` variables (in squary brackets))",
-                    "date_format": "Date format (Python strftime, e.g. %d-%b-%Y)"
+                    "date_format": "Date format (Python strftime, e.g. %d-%b-%Y)",
+                    "iso_week_numbers": "Use ISO week numbers"
+                },
+                "data_description": {
+                    "iso_week_numbers": "Ticked: follow ISO week numbers, which restart every year, so after a 53-week year (such as 2026) the cadence jumps. Untick for a strict every-n-weeks cadence that continues across New Year."
                 }
             }
         },

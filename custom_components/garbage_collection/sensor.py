@@ -25,6 +25,9 @@ from . import const, helpers
 
 _LOGGER = logging.getLogger(__name__)
 
+# Monday of ISO week 1 of 2026: start of the continuous week count
+CONTINUOUS_WEEK_ONE = date(2025, 12, 29)
+
 
 async def async_setup_entry(
     _: HomeAssistant, config_entry: ConfigEntry, async_add_devices: AddEntitiesCallback
@@ -472,10 +475,24 @@ class WeeklyCollection(GarbageCollection):
         else:
             self._period = config.get(const.CONF_PERIOD, 1)
             self._first_week = config.get(const.CONF_FIRST_WEEK, 1)
+        self._iso_weeks: bool = config.get(
+            const.CONF_ISO_WEEKS, const.DEFAULT_ISO_WEEKS
+        )
+
+    def _week_number(self, day: date) -> int:
+        """Return the week number used for the cadence.
+
+        ISO week numbers restart every year, so after a year with 53 weeks the
+        cadence jumps. Without them, weeks are counted continuously, numbered
+        like the ISO weeks of 2026 (week 1 starts on Monday 29 December 2025).
+        """
+        if self._iso_weeks:
+            return day.isocalendar()[1]
+        return (day - CONTINUOUS_WEEK_ONE).days // 7 + 1
 
     def _find_candidate_date(self, day1: date) -> date | None:
         """Calculate possible date, for weekly frequency."""
-        week = day1.isocalendar()[1]
+        week = self._week_number(day1)
         weekday = day1.weekday()
         offset = -1
         if (week - self._first_week) % self._period == 0:  # Collection this week
@@ -487,7 +504,7 @@ class WeeklyCollection(GarbageCollection):
         iterate_by_week = 7 - weekday + WEEKDAYS.index(self._collection_days[0])
         while offset == -1:  # look in following weeks
             candidate = day1 + relativedelta(days=iterate_by_week)
-            week = candidate.isocalendar()[1]
+            week = self._week_number(candidate)
             if (week - self._first_week) % self._period == 0:
                 offset = iterate_by_week
                 break
