@@ -128,7 +128,7 @@ class GarbageCollection(RestoreEntity):
         self._last_updated: datetime | None = None
         self.last_collection: datetime | None = None
         self._days: int | None = None
-        self._attr_state = "" if bool(self._verbose_state) else 2
+        self._attr_state: str | int | None = "" if bool(self._verbose_state) else 2
         self._attr_icon = self._icon_normal
 
     async def async_added_to_hass(self) -> None:
@@ -527,7 +527,7 @@ class DailyCollection(GarbageCollection):
         """Read parameters specific for Daily Collection Frequency."""
         super().__init__(config_entry)
         config = config_entry.options
-        self._period = config.get(const.CONF_PERIOD)
+        self._period: int | None = config.get(const.CONF_PERIOD)
         self._first_date: date | None
         try:
             self._first_date = helpers.to_date(config.get(const.CONF_FIRST_DATE))

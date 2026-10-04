@@ -3,7 +3,7 @@
         "step": {
             "user": {
                 "title": "Garbage Collection - Collection frequency (1/2)",
-                "description": "Enter the sensor name and configure sensor parameters. More info on https://github.com/bruxy70/Garbage-Collection",
+                "description": "Enter the sensor name and configure sensor parameters.",
                 "data": {
                     "name": "Friendly name",
                     "hidden": "Hide in calendar",
@@ -18,7 +18,7 @@
             },
             "detail": {
                 "title": "Garbage Collection - Additional parameters (2/2)",
-                "description": "More details here: https://github.com/bruxy70/Garbage-Collection",
+                "description": "Configure the collection schedule.",
                 "data": {
                     "date": "Date (mm/dd)",
                     "entities": "List of entities (comma separated)",
@@ -31,7 +31,7 @@
                     "weekday_order_number": "Order of the weekday in the month (e.g. first Wednesday of the month)",
                     "force_week_order_numbers": "Order of week in a month instead of order of weekday (e.g. on Wednesday of the first week)",
                     "verbose_format": "Verbose format (using `date` and `days` variables (in squary brackets))",
-                    "date_format": "Date format (see http://strftime.org/)"
+                    "date_format": "Date format (Python strftime, e.g. %d-%b-%Y)"
                 }
             }
         },
@@ -56,7 +56,7 @@
         "step": {
             "init": {
                 "title": "Garbage Collection - Collection frequency (1/2)",
-                "description": "Change sensor parameters. More info on https://github.com/bruxy70/Garbage-Collection",
+                "description": "Change sensor parameters.",
                 "data": {
                     "hidden": "Hide in calendar",
                     "frequency": "Frequency",
@@ -70,7 +70,7 @@
             },
             "detail": {
                 "title": "Garbage Collection - Additional parameters (2/2)",
-                "description": "More details here: https://github.com/bruxy70/Garbage-Collection",
+                "description": "Configure the collection schedule.",
                 "data": {
                     "date": "Date (mm/dd)",
                     "entities": "List of entities (comma separated)",
@@ -83,7 +83,7 @@
                     "weekday_order_number": "Order of the weekday in the month (e.g. first Wednesday of the month)",
                     "force_week_order_numbers": "Order of week in a month instead of order of weekday (e.g. on Wednesday of the first week)",
                     "verbose_format": "Verbose format (using `date` and `days` variables (in squary brackets))",
-                    "date_format": "Date format (see http://strftime.org/)"
+                    "date_format": "Date format (Python strftime, e.g. %d-%b-%Y)"
                 }
             }
         },
